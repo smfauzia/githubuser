@@ -42,7 +42,7 @@ class DetailActivity : AppCompatActivity(), View.OnClickListener {
         val tRepository = person.repository.toString()
         val imgUserAvatar = person.avatar
         currentUserImage = findViewById(R.id.user_photo)
-        currentUserImage.setImageResource(imgUserAvatar)
+//        currentUserImage.setImageResource(imgUserAvatar)
 
         currentUserName = findViewById(R.id.curr_user_name)
         currentUserUsername = findViewById(R.id.curr_user_username)

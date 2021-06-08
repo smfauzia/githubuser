@@ -1,76 +1,111 @@
 package com.latihan.githubuser
 
-import android.app.SearchManager
-import android.content.Context
-import android.content.Intent
+
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
+import android.util.Log
 import android.view.View
+import android.widget.SearchView
 import android.widget.Toast
-import androidx.appcompat.widget.SearchView
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.latihan.githubuser.databinding.ActivityMainBinding
+import com.loopj.android.http.AsyncHttpClient
+import com.loopj.android.http.AsyncHttpResponseHandler
+import cz.msebera.android.httpclient.Header
+import org.json.JSONObject
 
 
 class MainActivity : AppCompatActivity(), View.OnClickListener {
 
-    //private lateinit var rvUser: RecyclerView
-    //private val list: ArrayList<User> = arrayListOf()
+    companion object {
+        private val TAG = MainActivity::class.java.simpleName
+    }
 
-    private lateinit var adapter: UserAdapter
+    private val list = ArrayList<User>()
+
     private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        binding.rvUser.setHasFixedSize(true)
+
+        val searchView = findViewById<SearchView>(R.id.searchView)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        adapter = UserAdapter()
-        adapter.notifyDataSetChanged()
+        getDataUser()
 
-        binding.recyclerView.layoutManager = LinearLayoutManager(this)
-        binding.recyclerView.adapter = adapter
-
-        //rvUser = findViewById(R.id.rv_user)
-       // rvUser.setHasFixedSize(true)
-
-        //list.addAll(UserData.listData)
-        //showRecyclerList()
-
-    }
-
-    private fun showLoading(state: Boolean) {
-        if (state) {
-            binding.progressBar.visibility = View.VISIBLE
-        } else {
-            binding.progressBar.visibility = View.GONE
-        }
-    }
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        val inflater = menuInflater
-        inflater.inflate(R.menu.option_menu,menu)
-
-        val searchManager = getSystemService(Context.SEARCH_SERVICE) as SearchManager
-        val searchView = menu.findItem(R.id.search).actionView as SearchView
-
-        searchView.setSearchableInfo(searchManager.getSearchableInfo(componentName))
-        searchView.queryHint = resources.getString(R.string.search_hint)
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
-                Toast.makeText(this@MainActivity, query, Toast.LENGTH_SHORT).show()
+                Log.d(TAG, query)
+                if (query.isEmpty()) {
+                    return true
+                } else {
+                    list.clear()
+                    getDataUser(query)
+                }
                 return true
             }
             override fun onQueryTextChange(newText: String): Boolean {
-                return false
+                return true
             }
         })
-        return true
+
     }
+
+    private fun getDataUser(Username: String = "sidiq") {
+        binding.progressBar.visibility = View.VISIBLE
+        val client = AsyncHttpClient()
+        client.addHeader("Authorization", "token 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")
+        client.addHeader("User-Agent", "request")
+        val url = "https://api.github.com/search/users?q=$Username"
+        client.get(url, object : AsyncHttpResponseHandler() {
+            override fun onSuccess(statusCode: Int, headers: Array<Header>, responseBody: ByteArray) {
+                binding.progressBar.visibility = View.INVISIBLE
+                val result = String(responseBody)
+                Log.d(TAG, result)
+                try {
+                    val responseObject = JSONObject(result)
+                    val searchUser =  responseObject.getJSONArray("items")
+
+                    for(i in 0 until searchUser.length()){
+                        val getUser = searchUser.getJSONObject(i)
+                        val usernames = getUser.getString("login")
+                        val photos = getUser.getString("avatar_url")
+                        val ids = getUser.getInt("id")
+                        val Id = ids.toString()
+
+                        val user = User(
+                                username = usernames,
+                                avatar = photos,
+                                id = Id)
+
+                        list.add(user)
+                        showRecyclerList()
+                    }
+                } catch (e: Exception) {
+                    Toast.makeText(this@MainActivity, e.message, Toast.LENGTH_SHORT).show()
+                    e.printStackTrace()
+                }
+            }
+            override fun onFailure(statusCode: Int, headers: Array<Header>, responseBody: ByteArray, error: Throwable) {
+                binding.progressBar.visibility = View.INVISIBLE
+                val errorMessage = when (statusCode) {
+                    401 -> "$statusCode : Bad Request"
+                    403 -> "$statusCode : Forbidden"
+                    404 -> "$statusCode : Not Found"
+                    else -> "$statusCode : ${error.message}"
+                }
+                Toast.makeText(this@MainActivity, errorMessage, Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+
 
     override fun onClick(v: View?) {
         TODO("Not yet implemented")
@@ -78,9 +113,9 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
 
     private fun showRecyclerList() {
-        rvUser.layoutManager = LinearLayoutManager(this)
+        binding.rvUser.layoutManager = LinearLayoutManager(this)
         val listUserAdapter = ListUserAdapter(list)
-        rvUser.adapter = listUserAdapter
+        binding.rvUser.adapter = listUserAdapter
 
         listUserAdapter.setOnItemClickCallback(object : ListUserAdapter.OnItemClickCallback{
             override fun onItemClicked(data: User) {
@@ -90,6 +125,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     private fun showSelectedUser(user: User) {
-        Toast.makeText(this, "Kamu memilih " + user.name, Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Kamu memilih " + user.username, Toast.LENGTH_SHORT).show()
     }
 }
