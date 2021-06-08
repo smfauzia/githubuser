@@ -1,6 +1,7 @@
 package com.latihan.githubuser
 
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -21,6 +22,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         private val TAG = MainActivity::class.java.simpleName
     }
 
+    lateinit var searchView:SearchView
+
     private val list = ArrayList<User>()
 
     private lateinit var binding: ActivityMainBinding
@@ -32,29 +35,49 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
         binding.rvUser.setHasFixedSize(true)
 
-        val searchView = findViewById<SearchView>(R.id.searchView)
+        searchView = findViewById(R.id.searchView)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        searchUsername()
         getDataUser()
 
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+        /*searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
                 Log.d(TAG, query)
                 if (query.isEmpty()) {
                     return true
                 } else {
                     list.clear()
-                    getDataUser(query)
+                    getDataUserSearch(query)
                 }
                 return true
             }
             override fun onQueryTextChange(newText: String): Boolean {
-                return true
+                return false
+            }
+        })*/
+    }
+
+    private fun searchUsername() {
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String): Boolean {
+                Log.d(TAG, query)
+                if (query.isEmpty()) {
+                    return false
+                } else {
+                    list.clear()
+                    getDataUserSearch(query)
+                }
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String): Boolean {
+                return false
+
             }
         })
-
     }
 
     private fun getDataUser(Username: String = "sidiq") {
@@ -105,6 +128,54 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         })
     }
 
+    private fun getDataUserSearch(Username: String) {
+        binding.progressBar.visibility = View.VISIBLE
+        val client = AsyncHttpClient()
+        client.addHeader("Authorization", "token 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")
+        client.addHeader("User-Agent", "request")
+        val url = "https://api.github.com/search/users?q=$Username"
+        client.get(url, object : AsyncHttpResponseHandler() {
+            override fun onSuccess(statusCode: Int, headers: Array<Header>, responseBody: ByteArray) {
+                binding.progressBar.visibility = View.INVISIBLE
+                val result = String(responseBody)
+                Log.d(TAG, result)
+                try {
+                    val responseObject = JSONObject(result)
+                    val searchUser =  responseObject.getJSONArray("items")
+
+                    for(i in 0 until searchUser.length()){
+                        val getUser = searchUser.getJSONObject(i)
+                        val usernames = getUser.getString("login")
+                        val photos = getUser.getString("avatar_url")
+                        val ids = getUser.getInt("id")
+                        val Id = ids.toString()
+
+                        val user = User(
+                            username = usernames,
+                            avatar = photos,
+                            id = Id)
+
+                        list.add(user)
+                        showRecyclerList()
+                    }
+                } catch (e: Exception) {
+                    Toast.makeText(this@MainActivity, e.message, Toast.LENGTH_SHORT).show()
+                    e.printStackTrace()
+                }
+            }
+            override fun onFailure(statusCode: Int, headers: Array<Header>, responseBody: ByteArray, error: Throwable) {
+                binding.progressBar.visibility = View.INVISIBLE
+                val errorMessage = when (statusCode) {
+                    401 -> "$statusCode : Bad Request"
+                    403 -> "$statusCode : Forbidden"
+                    404 -> "$statusCode : Not Found"
+                    else -> "$statusCode : ${error.message}"
+                }
+                Toast.makeText(this@MainActivity, errorMessage, Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
 
 
     override fun onClick(v: View?) {
@@ -119,6 +190,9 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
         listUserAdapter.setOnItemClickCallback(object : ListUserAdapter.OnItemClickCallback{
             override fun onItemClicked(data: User) {
+                val intent = Intent(this@MainActivity, DetailActivity::class.java)
+                intent.putExtra(DetailActivity.EXTRA_PERSON,data.username)
+                startActivity(intent)
                 showSelectedUser(data)
             }
         })

@@ -5,12 +5,30 @@ import android.content.Intent
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
+import androidx.annotation.StringRes
+import androidx.viewpager.widget.ViewPager
+import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
+import com.latihan.githubuser.databinding.ActivityDetailBinding
+import com.latihan.githubuser.databinding.ActivityMainBinding
+import com.loopj.android.http.AsyncHttpClient
+import com.loopj.android.http.AsyncHttpResponseHandler
+import com.squareup.picasso.Picasso
+import cz.msebera.android.httpclient.Header
+import org.json.JSONObject
 
-class DetailActivity : AppCompatActivity(), View.OnClickListener {
+class DetailActivity : AppCompatActivity() {
+
+    companion object {
+        const val EXTRA_PERSON = "extra_person"
+    }
 
     private lateinit var currentUserImage: ImageView
     private lateinit var currentUserName: TextView
@@ -19,30 +37,24 @@ class DetailActivity : AppCompatActivity(), View.OnClickListener {
     private lateinit var currentUserFollowing: TextView
     private lateinit var currentUserCompany: TextView
     private lateinit var currentUserLocation: TextView
-    private lateinit var currentUserRepository: TextView
-    private lateinit var btnMyRepository: Button
+    private lateinit var currentUserId: TextView
 
-    companion object{
-        const val EXTRA_PERSON = "extra_person"
-    }
+    private lateinit var binding: ActivityDetailBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_detail)
+        binding = ActivityDetailBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         val actionBar = supportActionBar
         actionBar!!.title = "User Profile"
 
-        val person = intent.getParcelableExtra<Person>(EXTRA_PERSON) as User
-        val tName = person.name.toString()
-        val tUsername = person.username.toString()
-        val tFollowing = person.following.toString()
-        val tFollowers = person.follower.toString()
-        val tCompany = person.company.toString()
-        val tLocation = person.location.toString()
-        val tRepository = person.repository.toString()
-        val imgUserAvatar = person.avatar
-        currentUserImage = findViewById(R.id.user_photo)
-//        currentUserImage.setImageResource(imgUserAvatar)
+        val username = intent.getStringExtra(EXTRA_PERSON)
+        username.toString()
+
+        if (username != null) {
+            getDataUser(username)
+        }
 
         currentUserName = findViewById(R.id.curr_user_name)
         currentUserUsername = findViewById(R.id.curr_user_username)
@@ -50,37 +62,74 @@ class DetailActivity : AppCompatActivity(), View.OnClickListener {
         currentUserFollower = findViewById(R.id.user_followers)
         currentUserCompany = findViewById(R.id.user_company)
         currentUserLocation = findViewById(R.id.user_location)
-        currentUserRepository = findViewById(R.id.user_repository)
+        currentUserId = findViewById(R.id.user_id)
 
-        val currUserName = "$tName"
-        val currUserUsername = "$tUsername"
-        val currUserFollowing = "$tFollowing"
-        val currUserFollowers = "$tFollowers"
-        val currUserCompany = "Company: $tCompany"
-        val currUserLocation = "Location: $tLocation"
-        val currUserRepository = "Repository: $tRepository"
+        val sectionsPagerAdapter = SectionsPagerAdapter(this, supportFragmentManager)
+        val viewPager: ViewPager = findViewById(R.id.view_pager)
+        viewPager.adapter = sectionsPagerAdapter
+//        val tabs: TabLayout = findViewById(R.id.tabs)
 
-        currentUserName.text = currUserName
-        currentUserUsername.text = currUserUsername
-        currentUserFollowing.text = currUserFollowing
-        currentUserFollower.text = currUserFollowers
-        currentUserCompany.text = currUserCompany
-        currentUserLocation.text = currUserLocation
-        currentUserRepository.text = currUserRepository
-
-        btnMyRepository = findViewById(R.id.btn_myRepository)
-        btnMyRepository.setOnClickListener(this)
-    }
-
-    override fun onClick(v: View) {
-        when(v.id){
-            R.id.btn_myRepository ->{
-                val person = intent.getParcelableExtra<Person>(EXTRA_PERSON) as User
-                val myRep = person.username.toString()
-                val uri: Uri = Uri.parse("http://www.github.com/$myRep")
-                val intentCari = Intent(Intent.ACTION_VIEW, uri)
-                startActivity(intentCari)
-            }
+        if (username != null) {
+            sectionsPagerAdapter.username = username
         }
+
+//        TabLayoutMediator(tabs, viewPager) { tab, position ->
+//            tab.text = resources.getString(TAB_TITLES[position])
+//        }.attach()
+        val tabs: TabLayout = findViewById(R.id.tabs)
+        tabs.setupWithViewPager(viewPager)
+        supportActionBar?.elevation = 0f
     }
+
+    private fun getDataUser(Username: String) {
+        currentUserImage = findViewById(R.id.user_photo)
+        binding.progressBar.visibility = View.VISIBLE
+        val client = AsyncHttpClient()
+        client.addHeader("Authorization", "token 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")
+        client.addHeader("User-Agent", "request")
+        val url = "https://api.github.com/users/$Username"
+        client.get(url, object : AsyncHttpResponseHandler() {
+            override fun onSuccess(statusCode: Int, headers: Array<Header>, responseBody: ByteArray) {
+                binding.progressBar.visibility = View.INVISIBLE
+                val result = String(responseBody)
+                try {
+                    val responseObject = JSONObject(result)
+
+                    val name = responseObject.getString("name")
+                    val usernames = responseObject.getString("login")
+                    val photos = responseObject.getString("avatar_url")
+                    val following = responseObject.getString("following")
+                    val followers = responseObject.getString("followers")
+                    val company = responseObject.getString("company")
+                    val location = responseObject.getString("location")
+                    val ids = responseObject.getInt("id")
+                    val Id = ids.toString()
+
+                    Picasso.get().load(photos).into(currentUserImage)
+                    currentUserName.text = name
+                    currentUserUsername.text = usernames
+                    currentUserFollowing.text = following
+                    currentUserFollower.text = followers
+                    currentUserCompany.text = company
+                    currentUserLocation.text = location
+                    currentUserId.text = Id
+
+                } catch (e: Exception) {
+                    Toast.makeText(this@DetailActivity, e.message, Toast.LENGTH_SHORT).show()
+                    e.printStackTrace()
+                }
+            }
+            override fun onFailure(statusCode: Int, headers: Array<Header>, responseBody: ByteArray, error: Throwable) {
+                binding.progressBar.visibility = View.INVISIBLE
+                val errorMessage = when (statusCode) {
+                    401 -> "$statusCode : Bad Request"
+                    403 -> "$statusCode : Forbidden"
+                    404 -> "$statusCode : Not Found"
+                    else -> "$statusCode : ${error.message}"
+                }
+                Toast.makeText(this@DetailActivity, errorMessage, Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
 }
