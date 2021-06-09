@@ -89,7 +89,6 @@ class Following : Fragment() {
                     404 -> "$statusCode : Not Found"
                     else -> "$statusCode : ${error.message}"
                 }
-                //Toast.makeText(this@MainActivity, errorMessage, Toast.LENGTH_SHORT).show()
             }
         })
 

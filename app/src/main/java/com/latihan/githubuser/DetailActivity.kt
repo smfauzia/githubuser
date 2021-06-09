@@ -47,14 +47,6 @@ class DetailActivity : AppCompatActivity() {
             getDataUser(username)
         }
 
-        currentUserName = findViewById(R.id.curr_user_name)
-        currentUserUsername = findViewById(R.id.curr_user_username)
-        currentUserFollowing = findViewById(R.id.user_following)
-        currentUserFollower = findViewById(R.id.user_followers)
-        currentUserCompany = findViewById(R.id.user_company)
-        currentUserLocation = findViewById(R.id.user_location)
-        currentUserId = findViewById(R.id.user_id)
-
         val sectionsPagerAdapter = SectionsPagerAdapter(this, supportFragmentManager)
         val viewPager: ViewPager = findViewById(R.id.view_pager)
         viewPager.adapter = sectionsPagerAdapter
@@ -69,7 +61,15 @@ class DetailActivity : AppCompatActivity() {
     }
 
     private fun getDataUser(Username: String) {
+        currentUserName = findViewById(R.id.curr_user_name)
+        currentUserUsername = findViewById(R.id.curr_user_username)
+        currentUserFollowing = findViewById(R.id.user_following)
+        currentUserFollower = findViewById(R.id.user_followers)
+        currentUserCompany = findViewById(R.id.user_company)
+        currentUserLocation = findViewById(R.id.user_location)
+        currentUserId = findViewById(R.id.user_id)
         currentUserImage = findViewById(R.id.user_photo)
+
         binding.progressBar.visibility = View.VISIBLE
         val client = AsyncHttpClient()
         client.addHeader("Authorization", "token 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")

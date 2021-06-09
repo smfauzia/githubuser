@@ -18,11 +18,8 @@ import cz.msebera.android.httpclient.Header
 import org.json.JSONObject
 
 
-class MainActivity : AppCompatActivity(), View.OnClickListener {
+class MainActivity : AppCompatActivity() {
 
-    companion object {
-        private val TAG = MainActivity::class.java.simpleName
-    }
 
     private val list = ArrayList<User>()
 
@@ -54,7 +51,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                     return true
                 } else {
                     list.clear()
-                    getDataUserSearch(query)
+                    getDataUser(query)
                 }
                 return true
             }
@@ -75,7 +72,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             override fun onSuccess(statusCode: Int, headers: Array<Header>, responseBody: ByteArray) {
                 binding.progressBar.visibility = View.INVISIBLE
                 val result = String(responseBody)
-                Log.d(TAG, result)
                 try {
                     val responseObject = JSONObject(result)
                     val searchUser =  responseObject.getJSONArray("items")
@@ -111,60 +107,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                 Toast.makeText(this@MainActivity, errorMessage, Toast.LENGTH_SHORT).show()
             }
         })
-    }
-
-    private fun getDataUserSearch(Username: String) {
-        binding.progressBar.visibility = View.VISIBLE
-        val client = AsyncHttpClient()
-        client.addHeader("Authorization", "token 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")
-        client.addHeader("User-Agent", "request")
-        val url = "https://api.github.com/search/users?q=$Username"
-        client.get(url, object : AsyncHttpResponseHandler() {
-            override fun onSuccess(statusCode: Int, headers: Array<Header>, responseBody: ByteArray) {
-                binding.progressBar.visibility = View.INVISIBLE
-                val result = String(responseBody)
-                Log.d(TAG, result)
-                try {
-                    val responseObject = JSONObject(result)
-                    val searchUser =  responseObject.getJSONArray("items")
-
-                    for(i in 0 until searchUser.length()){
-                        val getUser = searchUser.getJSONObject(i)
-                        val usernames = getUser.getString("login")
-                        val photos = getUser.getString("avatar_url")
-                        val ids = getUser.getInt("id")
-                        val Id = ids.toString()
-
-                        val user = User(
-                            username = usernames,
-                            avatar = photos,
-                            id = Id)
-
-                        list.add(user)
-                        showRecyclerList()
-                    }
-                } catch (e: Exception) {
-                    Toast.makeText(this@MainActivity, e.message, Toast.LENGTH_SHORT).show()
-                    e.printStackTrace()
-                }
-            }
-            override fun onFailure(statusCode: Int, headers: Array<Header>, responseBody: ByteArray, error: Throwable) {
-                binding.progressBar.visibility = View.INVISIBLE
-                val errorMessage = when (statusCode) {
-                    401 -> "$statusCode : Bad Request"
-                    403 -> "$statusCode : Forbidden"
-                    404 -> "$statusCode : Not Found"
-                    else -> "$statusCode : ${error.message}"
-                }
-                Toast.makeText(this@MainActivity, errorMessage, Toast.LENGTH_SHORT).show()
-            }
-        })
-    }
-
-
-
-    override fun onClick(v: View?) {
-        TODO("Not yet implemented")
     }
 
 
