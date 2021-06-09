@@ -1,12 +1,14 @@
 package com.latihan.githubuser
 
 
+import android.app.SearchManager
+import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
 import android.view.View
-import android.widget.SearchView
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.latihan.githubuser.databinding.ActivityMainBinding
@@ -22,8 +24,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         private val TAG = MainActivity::class.java.simpleName
     }
 
-    lateinit var searchView:SearchView
-
     private val list = ArrayList<User>()
 
     private lateinit var binding: ActivityMainBinding
@@ -35,17 +35,21 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
         binding.rvUser.setHasFixedSize(true)
 
-        searchView = findViewById(R.id.searchView)
-
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        searchUsername()
         getDataUser()
+    }
 
-        /*searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater = menuInflater
+        inflater.inflate(R.menu.option_menu, menu)
+        val searchManager = getSystemService(Context.SEARCH_SERVICE) as SearchManager
+        val searchView = menu.findItem(R.id.search).actionView as androidx.appcompat.widget.SearchView
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(componentName))
+        searchView.queryHint = resources.getString(R.string.search_hint)
+        searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
-                Log.d(TAG, query)
                 if (query.isEmpty()) {
                     return true
                 } else {
@@ -57,27 +61,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             override fun onQueryTextChange(newText: String): Boolean {
                 return false
             }
-        })*/
-    }
-
-    private fun searchUsername() {
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String): Boolean {
-                Log.d(TAG, query)
-                if (query.isEmpty()) {
-                    return false
-                } else {
-                    list.clear()
-                    getDataUserSearch(query)
-                }
-                return false
-            }
-
-            override fun onQueryTextChange(newText: String): Boolean {
-                return false
-
-            }
         })
+        return true
     }
 
     private fun getDataUser(Username: String = "sidiq") {

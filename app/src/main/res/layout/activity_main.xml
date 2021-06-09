@@ -16,21 +16,11 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <SearchView
-            android:id="@+id/searchView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:iconifiedByDefault="false"
-            android:queryHint="search username"/>
-
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_user"
-            android:layout_below="@+id/searchView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             tools:listitem="@layout/item_row_user"/>
-
     </RelativeLayout>
 
     <ProgressBar
