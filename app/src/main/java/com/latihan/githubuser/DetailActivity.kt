@@ -38,7 +38,7 @@ class DetailActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val actionBar = supportActionBar
-        actionBar!!.title = "User Profile"
+        actionBar?.title = "User Profile"
 
         val username = intent.getStringExtra(EXTRA_PERSON)
         username.toString()
