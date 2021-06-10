@@ -1,5 +1,8 @@
 package com.latihan.githubuser
 
+import android.content.ContentValues
+import android.database.Cursor
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -7,7 +10,17 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.viewpager.widget.ViewPager
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.tabs.TabLayout
+import com.latihan.githubuser.Database.HelperUser
+import com.latihan.githubuser.Database.MappingHelper
+import com.latihan.githubuser.Database.UserDatabase.UserColumns.Companion.AVATAR_URL
+import com.latihan.githubuser.Database.UserDatabase.UserColumns.Companion.COMPANY
+import com.latihan.githubuser.Database.UserDatabase.UserColumns.Companion.CONTENT_URI
+import com.latihan.githubuser.Database.UserDatabase.UserColumns.Companion.FAVORITE
+import com.latihan.githubuser.Database.UserDatabase.UserColumns.Companion.LOCATION
+import com.latihan.githubuser.Database.UserDatabase.UserColumns.Companion.USERNAME
+import com.latihan.githubuser.Database.UserDatabase.UserColumns.Companion._ID
 import com.latihan.githubuser.databinding.ActivityDetailBinding
 import com.loopj.android.http.AsyncHttpClient
 import com.loopj.android.http.AsyncHttpResponseHandler
@@ -29,6 +42,20 @@ class DetailActivity : AppCompatActivity() {
     private lateinit var currentUserCompany: TextView
     private lateinit var currentUserLocation: TextView
     private lateinit var currentUserId: TextView
+
+    private lateinit var urlAvatar: String
+    private var urlId: Int = 0
+
+
+    private lateinit var floatActButton: FloatingActionButton
+
+    lateinit var cursor: Cursor
+    lateinit var uriWithId: Uri
+
+    private lateinit var favorite: String
+
+    private lateinit var getHelper: HelperUser
+    private var statusFavorite = false
 
     private lateinit var binding: ActivityDetailBinding
 
@@ -58,6 +85,43 @@ class DetailActivity : AppCompatActivity() {
         val tabs: TabLayout = findViewById(R.id.tabs)
         tabs.setupWithViewPager(viewPager)
         supportActionBar?.elevation = 0f
+
+        floatActButton = binding.favButton
+
+        floatActButton.setOnClickListener{
+            statusFavorite = !statusFavorite
+            setStatusFavorite(statusFavorite)
+        }
+    }
+
+    private fun setStatusFavorite(statusFavorite: Boolean) {
+        if (statusFavorite){
+                val dataUsername = currentUserUsername.text.toString().trim()
+                val dataAvatar = urlAvatar
+                val datacompany = currentUserCompany.text.toString().trim()
+                val dataFavorite = "1"
+                val dataLocation = currentUserLocation.text.toString().trim()
+                val dataids = currentUserId.text.toString().trim()
+
+
+                val values = ContentValues()
+                values.put(USERNAME, dataUsername)
+                values.put(AVATAR_URL, dataAvatar)
+                values.put(COMPANY, datacompany)
+                values.put(FAVORITE, dataFavorite)
+                values.put(LOCATION, dataLocation)
+                values.put(_ID, dataids)
+
+                Toast.makeText(this, "Berhasil dimasukkan ke dalam Favorite", Toast.LENGTH_SHORT).show()
+                floatActButton.setImageResource(R.drawable.ic_baseline_favorite_24)
+
+                contentResolver?.insert(CONTENT_URI, values)
+        }
+        else{
+                floatActButton.setImageResource(R.drawable.ic_baseline_favorite_border_24)
+                contentResolver?.delete(uriWithId, null, null)
+                Toast.makeText(this,"Berhasil dihapus dari Favorite", Toast.LENGTH_SHORT).show()
+            }
     }
 
     private fun getDataUser(Username: String) {
@@ -92,6 +156,9 @@ class DetailActivity : AppCompatActivity() {
                     val ids = responseObject.getInt("id")
                     val Id = ids.toString()
 
+                    urlAvatar = photos
+                    urlId = ids
+
                     Picasso.get().load(photos).into(currentUserImage)
                     currentUserName.text = name
                     currentUserUsername.text = usernames
@@ -101,8 +168,25 @@ class DetailActivity : AppCompatActivity() {
                     currentUserLocation.text = location
                     currentUserId.text = Id
 
+                    uriWithId = Uri.parse(CONTENT_URI.toString() + "/" + urlId)
+                    cursor = contentResolver?.query(uriWithId, null, null, null, null)!!
+                    if (cursor.count > 0) {
+                        var users = MappingHelper.mapCursorToObject(cursor)
+                        favorite = users.favorite.toString()
+
+                        if (favorite == "1"){
+                            val checked: Int = R.drawable.ic_baseline_favorite_24
+                            floatActButton.setImageResource(checked)
+                            statusFavorite = true
+                            cursor.close()
+                        }
+                        else{
+                            statusFavorite = false
+                        }
+                    }
+
                 } catch (e: Exception) {
-                    Toast.makeText(this@DetailActivity, e.message, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@DetailActivity, "Ada Error Le", Toast.LENGTH_SHORT).show()
                     e.printStackTrace()
                 }
             }
@@ -118,5 +202,4 @@ class DetailActivity : AppCompatActivity() {
             }
         })
     }
-
 }

@@ -13,5 +13,6 @@ data class User (
     val company: String?= null,
     val location: String?= null,
     val repository: String?= null,
-    val id: String?= null
+    val id: String?= null,
+    val favorite: String? =null
 ): Parcelable
