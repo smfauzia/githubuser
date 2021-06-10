@@ -4,14 +4,15 @@ package com.latihan.githubuser
 import android.app.SearchManager
 import android.content.Context
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.latihan.githubuser.Favorite.FavoriteActivity
+import com.latihan.githubuser.alarmreminder.ReminderActivity
 import com.latihan.githubuser.databinding.ActivityMainBinding
 import com.loopj.android.http.AsyncHttpClient
 import com.loopj.android.http.AsyncHttpResponseHandler
@@ -67,6 +68,11 @@ class MainActivity : AppCompatActivity() {
         when (item.itemId) {
             R.id.favorite -> {
                 val i = Intent(this, FavoriteActivity::class.java)
+                startActivity(i)
+                return true
+            }
+            R.id.setting ->{
+                val i = Intent(this, ReminderActivity::class.java)
                 startActivity(i)
                 return true
             }

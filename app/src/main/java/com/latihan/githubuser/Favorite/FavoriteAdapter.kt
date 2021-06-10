@@ -5,12 +5,13 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
+import com.latihan.githubuser.ListUserAdapter
 import com.latihan.githubuser.User
 import com.latihan.githubuser.databinding.ItemRowUserBinding
 
-class FavoriteAdapter(private val listUser:ArrayList<User>) : RecyclerView.Adapter<FavoriteAdapter.ListViewHolder>(){
+class FavoriteAdapter(private val listUser: ArrayList<User>) : RecyclerView.Adapter<FavoriteAdapter.ListViewHolder>() {
 
-    private var onItemClickCallback: OnItemClickCallback? = null
+    private var onItemClickCallback: ListUserAdapter.OnItemClickCallback? = null
 
     inner class ListViewHolder(private val binding: ItemRowUserBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(user: User) {
@@ -27,7 +28,7 @@ class FavoriteAdapter(private val listUser:ArrayList<User>) : RecyclerView.Adapt
         }
     }
 
-    fun setOnItemClickCallback(onItemClickCallback: OnItemClickCallback) {
+    fun setOnItemClickCallback(onItemClickCallback: ListUserAdapter.OnItemClickCallback) {
         this.onItemClickCallback = onItemClickCallback
     }
 
@@ -40,10 +41,10 @@ class FavoriteAdapter(private val listUser:ArrayList<User>) : RecyclerView.Adapt
         holder.bind(listUser[position])
     }
 
-    override fun getItemCount(): Int = listUser.size
-
+    override fun getItemCount():Int = listUser.size
 
     interface OnItemClickCallback {
         fun onItemClicked(data: User)
     }
+
 }

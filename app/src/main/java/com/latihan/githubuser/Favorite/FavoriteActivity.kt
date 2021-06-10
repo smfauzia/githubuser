@@ -2,9 +2,9 @@ package com.latihan.githubuser.Favorite
 
 import android.content.Intent
 import android.database.Cursor
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.latihan.githubuser.Database.UserDatabase
 import com.latihan.githubuser.Database.UserDatabase.UserColumns.Companion.CONTENT_URI
@@ -24,11 +24,11 @@ class FavoriteActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityFavoriteBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        getDataFavorite()
-    }
 
-    private fun getDataFavorite() {
-        binding.progressBar.visibility = View.VISIBLE
+        supportActionBar?.title = "Favorite Users"
+
+        list.clear()
+
         cursor = contentResolver.query(CONTENT_URI, null, null, null, null)!!
         if (cursor.count > 0) {
             cursor.moveToFirst()
@@ -42,15 +42,10 @@ class FavoriteActivity : AppCompatActivity() {
                 cursor.moveToNext()
             } while (!cursor.isAfterLast)
         }
-
-        showRecyclerList()
-
-    }
-
-    private fun showRecyclerList() {
         binding.progressBar.visibility = View.INVISIBLE
+
         binding.rvUser.layoutManager = LinearLayoutManager(this)
-        val listUserAdapter = ListUserAdapter(list)
+        val listUserAdapter = FavoriteAdapter(list)
         binding.rvUser.adapter = listUserAdapter
 
         listUserAdapter.setOnItemClickCallback(object : ListUserAdapter.OnItemClickCallback{

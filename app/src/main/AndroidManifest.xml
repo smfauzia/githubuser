@@ -11,6 +11,11 @@
         android:name="com.latihan.githubuser.WRITE_DATABASE"
         android:protectionLevel="normal" />
 
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/githublogo"
@@ -18,7 +23,8 @@
         android:roundIcon="@drawable/githublogo"
         android:supportsRtl="true"
         android:theme="@style/Theme.GithubUser">
-        <activity android:name=".Favorite.FavoriteActivity"></activity>
+        <activity android:name=".alarmreminder.ReminderActivity"></activity>
+        <activity android:name=".Favorite.FavoriteActivity" />
 
         <provider
             android:name=".Provider.provider"
@@ -26,7 +32,13 @@
             android:enabled="true"
             android:exported="true"
             android:readPermission="com.latihan.githubuser.READ_DATABASE"
-            android:writePermission="com.latihan.githubuser.WRITE_DATABASE"></provider>
+            android:writePermission="com.latihan.githubuser.WRITE_DATABASE" />
+
+        <receiver
+            android:name=".alarmreminder.AlarmReceiver"
+            android:enabled="true"
+            android:exported="true">
+        </receiver>
 
         <activity android:name=".DetailActivity" />
         <activity android:name=".MainActivity">
