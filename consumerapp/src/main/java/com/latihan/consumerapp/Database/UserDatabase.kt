@@ -4,7 +4,7 @@ import android.net.Uri
 import android.provider.BaseColumns
 
 object UserDatabase {
-    const val AUTHORITY = "com.latihan.consumerapp"
+    const val AUTHORITY = "com.latihan.githubuser"
     const val SCHEME = "content"
 
     class UserColumns : BaseColumns {
